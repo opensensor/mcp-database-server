@@ -44,7 +44,7 @@ if (args.length === 0) {
   logger.error("Please provide database connection information");
   logger.error("Usage for SQLite: node index.js <database_file_path>");
   logger.error("Usage for SQL Server: node index.js --sqlserver --server <server> --database <database> [--user <user> --password <password>]");
-  logger.error("Usage for PostgreSQL: node index.js --postgresql --host <host> --database <database> [--user <user> --password <password> --port <port>]");
+  logger.error("Usage for PostgreSQL: node index.js --postgresql --host <host> --database <database> [--user <user> --password <password> --port <port> --ssl true --ssl-reject-unauthorized false]");
   logger.error("Usage for MySQL: node index.js --mysql --host <host> --database <database> [--user <user> --password <password> --port <port>]");
   logger.error("Usage for MySQL with AWS IAM: node index.js --mysql --aws-iam-auth --host <rds-endpoint> --database <database> --user <aws-username> --aws-region <region>");
   process.exit(1);
@@ -95,9 +95,10 @@ else if (args.includes('--postgresql') || args.includes('--postgres')) {
     password: undefined,
     port: undefined,
     ssl: undefined,
+    sslRejectUnauthorized: undefined,
     connectionTimeout: undefined
   };
-  
+
   // Parse PostgreSQL connection parameters
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--host' && i + 1 < args.length) {
@@ -112,11 +113,19 @@ else if (args.includes('--postgresql') || args.includes('--postgres')) {
       connectionInfo.port = parseInt(args[i + 1], 10);
     } else if (args[i] === '--ssl' && i + 1 < args.length) {
       connectionInfo.ssl = args[i + 1] === 'true';
+    } else if (args[i] === '--ssl-reject-unauthorized' && i + 1 < args.length) {
+      connectionInfo.sslRejectUnauthorized = args[i + 1] === 'true';
     } else if (args[i] === '--connection-timeout' && i + 1 < args.length) {
       connectionInfo.connectionTimeout = parseInt(args[i + 1], 10);
     }
   }
-  
+
+  // Build SSL configuration object if needed
+  if (connectionInfo.ssl && connectionInfo.sslRejectUnauthorized === false) {
+    connectionInfo.ssl = { rejectUnauthorized: false };
+    logger.info("SSL enabled with self-signed certificate support (rejectUnauthorized: false)");
+  }
+
   // Validate PostgreSQL connection info
   if (!connectionInfo.host || !connectionInfo.database) {
     logger.error("Error: PostgreSQL requires --host and --database parameters");

@@ -90,6 +90,7 @@ Optional parameters:
 - `--password`: Password for PostgreSQL authentication
 - `--port`: Port number (default: 5432)
 - `--ssl`: Enable SSL connection (true/false)
+- `--ssl-reject-unauthorized`: Reject unauthorized SSL certificates (true/false, default: true). Set to `false` to accept self-signed certificates.
 - `--connection-timeout`: Connection timeout in milliseconds (default: 30000)
 
 ### MySQL Database
